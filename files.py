@@ -94,14 +94,30 @@ def Loader(maze, foldername: str, filename: str, fileext: str="", id_hash: str="
         try:
             with open(foldername+'/pkl/'+filename+'.pkl', "rb") as file:
                 loaded_maze = pickle.load(file)
+
                 maze.height = loaded_maze.height
                 maze.width = loaded_maze.width
                 maze.hash = loaded_maze.hash
                 maze.maze = loaded_maze.maze
+                maze.verbose = loaded_maze.verbose
+                maze.remove_walls = loaded_maze.remove_walls
                 maze.make = Maker(maze=maze)
+                maze.make.steps = loaded_maze.make.steps
                 maze.visualize = Visualizer(maze=maze)
                 maze.solve = Solver(maze=maze)
                 maze.analyze = Analyzer(maze=maze)
+                maze.contest_mode = loaded_maze.contest_mode
+                maze.contest_end = loaded_maze.contest_end
+                maze.start_zone = loaded_maze.start_zone
+                maze.start_path = loaded_maze.start_path
+                maze.start_pos = loaded_maze.start_pos
+                maze.end_zone = loaded_maze.end_zone
+                maze.end_pos = loaded_maze.end_pos
+                maze.ziel_marker = loaded_maze.ziel_marker
+                maze.ball_marker = loaded_maze.ball_marker
+                maze.paths = loaded_maze.paths
+                maze.visited = loaded_maze.visited
+                maze.solved = loaded_maze.solved
             return True
         except FileNotFoundError:
             print(f"File {filename}.pkl not found in {foldername}/pkl/.")
