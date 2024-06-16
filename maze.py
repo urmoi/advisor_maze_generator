@@ -17,7 +17,7 @@ class Maze:
         self.height: int = size[0]
         self.width: int = size[1]
 
-        self.hash: str = "00000000"
+        self.hash: str = "########"
 
         self.remove_walls: int = remove_walls
 
