@@ -1,3 +1,5 @@
+import os
+
 from algorithm import Algorithm
 from ascii import ASCII
 from direction import DIR
@@ -16,6 +18,9 @@ class SVG:
         svg_name: str = f'{file_name}.svg'
         pdf_name: str = f'{file_name}.pdf'
 
+        if not os.path.exists('graphics/svg/'):
+            os.makedirs('graphics/svg/')
+
         try:
             with open('graphics/svg/'+svg_name, 'w') as f:
                 f.write(self.svg(maze))
@@ -23,6 +28,8 @@ class SVG:
             return print(f"File {svg_name} can't be saved.")
         
         if to_pdf:
+            if not os.path.exists('graphics/pdf/'):
+                os.makedirs('graphics/pdf/')
             try:
                 from cairosvg import svg2pdf
                 svg2pdf(url='graphics/svg/'+svg_name, write_to='graphics/pdf/'+pdf_name)
