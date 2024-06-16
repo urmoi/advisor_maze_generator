@@ -24,7 +24,7 @@ def main():
     size: tuple[int, int] = (-16, -16)
     runs: int = -10
     cutoff: int = 10
-    algorithms: list[Algorithm] = [Algorithm.BFS]
+    algorithms: list[Algorithm] = []
     verbose: int = 0
     remove_walls: int = 15
     contest_mode: bool = False
@@ -129,6 +129,9 @@ def main():
     
     if runs < 0:
         runs = -1*runs
+
+    if algorithms == []:
+        algorithms = [Algorithm.BFS]
 
     if mode == 'sim':
         simulate(
