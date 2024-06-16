@@ -138,7 +138,7 @@ def main():
             remove_walls=remove_walls,
             contest_mode=contest_mode,
             verbose=verbose,
-            algorithm=algorithms[0] if len(algorithms) == 1 else Algorithm._NONE,
+            algorithms=algorithms,
             graphics=graphics
         )
     elif mode == 'bat':
@@ -240,7 +240,7 @@ def simulate(
     remove_walls: int=15,
     contest_mode: bool=True,
     verbose: int=0,
-    algorithm: Algorithm=Algorithm._NONE,
+    algorithms: list[Algorithm]=[],
     graphics: bool=True
 ):
     import time
@@ -260,26 +260,21 @@ def simulate(
 
         maze.make()
 
-        if algorithm != Algorithm._NONE:
-            maze.solve(algorithms=[algorithm])
-            analysis = maze.analyze(algorithm=algorithm)
-            mazes.append((maze, analysis))
-        else:
-            mazes.append((maze, {}))
+        maze.solve(algorithms=algorithms)
 
         maze.save()
 
-    if algorithm != Algorithm._NONE:
-        # sort mazes by the algorithm's analysis path length
-        mazes.sort(key=lambda x: x[1]['length'])
+        mazes.append((maze, maze.analyze(algorithm=algorithms[0])))
+
+    # sort mazes by the algorithm's analysis path length
+    mazes.sort(key=lambda m: m[1]['length'])
 
     print("\033c")
     
     __: str = ""
     __ += f"\n"
     __ += f"> Maze Simulation"
-    if algorithm != Algorithm._NONE:
-        __ += f" with {algorithm.name}"
+    __ += f" with {algorithms[0].name}"
     __ += f"\n\n"
     __ += f"  maze hash | Length | Turns | Branch\n"
     __ += f"  ----------|--------|-------|-------\n"
