@@ -231,9 +231,9 @@ def test(
 
     maze.save()
     if graphics:
-        SVG(maze, filename=f'maze', paths=False, overview=False)
-        SVG(maze, filename=f'maze_build', paths=False, overview=False, helpers=True, changes=True)
-        SVG(maze, filename=f'maze_solution', paths=True, overview=True)
+        SVG(maze, foldername=f'graphics', filename=f'maze', paths=False, overview=False)
+        SVG(maze, foldername=f'graphics', filename=f'maze_build', paths=False, overview=False, helpers=True, changes=True)
+        SVG(maze, foldername=f'graphics', filename=f'maze_solution', paths=True, overview=True)
 
 
 def simulate(
@@ -270,25 +270,28 @@ def simulate(
     # sort mazes by the algorithm's analysis path length
     mazes.sort(key=lambda m: m[1]['length'])
 
-    print("\033c")
+    foldername: str = f'simulation_{time.strftime("%Y%m%d-%H%M%S")}'
     
     __: str = ""
     __ += f"\n"
-    __ += f"> Maze Simulation"
-    __ += f" with {algorithms[0].name}"
+    __ += f"> Maze Simulation with {algorithms[0].name}\n"
+    __ += f"            [{remove_walls} random walls removed]"
     __ += f"\n\n"
     __ += f"  maze hash | Length | Turns | Branch\n"
     __ += f"  ----------|--------|-------|-------\n"
     for i, (maze, analysis) in enumerate(mazes):
         __ += f" {maze.hash:>10} |"
         __ += f" {analysis['length']:6} | {analysis['turns']:5} | {analysis['branches']:6}\n"
+        maze.save(foldername=foldername+'/mazes')
         if graphics:
-            maze.save()
-            SVG(maze, filename=f'maze', paths=False, overview=False)
-            SVG(maze, filename=f'maze_solution', paths=True, overview=True)
+            SVG(maze, foldername=foldername+'/mazes', filename=f'maze', paths=False, overview=False)
+            SVG(maze, foldername=foldername+'/solutions', filename=f'maze', paths=True, overview=True)
         if i+1 == cutoff:
             break
     print(__)
+
+    with open(f'{foldername}/simulation_summary.txt', 'w') as file:
+        file.write(__)
 
 
 def testbatch(
@@ -315,8 +318,9 @@ def testbatch(
     
     maze.overview()
 
-    maze.save()
-    SVG(maze, filename=f'maze', paths=False, overview=False)
+    foldername: str = f'batch_{maze.hash}'
+    maze.save(foldername=foldername)
+    SVG(maze, foldername=foldername, filename=f'maze', paths=False, overview=False)
 
     maze_before = maze.copy().maze
     mazes: list[Maze] = []
@@ -342,9 +346,9 @@ def testbatch(
 
         maze_.save(filename=f'maze_{i+1:02d}')
         if graphics:
-            SVG(maze_, filename=f'maze_{i+1:02d}', paths=False, overview=False)
-            SVG(maze_, filename=f'maze_{i+1:02d}_build', paths=False, overview=False, helpers=True, changes=True)
-            SVG(maze_, filename=f'maze_{i+1:02d}_solution', paths=True, overview=True)
+            SVG(maze_, foldername=foldername, filename=f'maze_{i+1:02d}', paths=False, overview=False)
+            SVG(maze_, foldername=foldername, filename=f'maze_{i+1:02d}_build', paths=False, overview=False, helpers=True, changes=True)
+            SVG(maze_, foldername=foldername, filename=f'maze_{i+1:02d}_solution', paths=True, overview=True)
 
 def load(
     id_hash: str = '',
@@ -355,8 +359,10 @@ def load(
         error()
     
     maze: Maze = Maze(size=(0, 0))
-    maze.load(id_hash=id_hash)
-    
+
+    if not maze.load(id_hash=id_hash):
+        sys.exit(1)
+
     maze.solve(algorithms=algorithms)
 
     maze.visualize(paths=True, visited=False, guide=False)
@@ -364,9 +370,10 @@ def load(
     maze.overview()
 
     if graphics:
-        SVG(maze, filename=f'__maze', paths=False, overview=False)
-        SVG(maze, filename=f'__maze_build', paths=False, overview=False, helpers=True, changes=True)
-        SVG(maze, filename=f'__maze_solution', paths=True, overview=True)
+        foldername: str = f'graphics_{maze.hash}'
+        SVG(maze, foldername=foldername, filename=f'__maze', paths=False, overview=False)
+        SVG(maze, foldername=foldername, filename=f'__maze_build', paths=False, overview=False, helpers=True, changes=True)
+        SVG(maze, foldername=foldername, filename=f'__maze_solution', paths=True, overview=True)
 
     
         
