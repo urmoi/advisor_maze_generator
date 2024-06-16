@@ -44,17 +44,18 @@ def Loader(maze, foldername: str, filename: str, fileext: str="", id_hash: str="
     def _load_from_hash() -> bool:
         import os
         try:
-            files = os.listdir(foldername+'/pkl/')
-            for file in files:
-                if id_hash in file:
-                    nonlocal filename
-                    filename = file.split('.')[0]
-                    return _load_pickle()
+            for root, dirs, files in os.walk('./'):
+                for file in files:
+                    if id_hash+'.pkl' in file:
+                        nonlocal foldername
+                        foldername = root[2:-3]
+                        nonlocal filename
+                        filename = file.split('.')[0]
+                        return _load_pickle()
             raise FileNotFoundError
         except FileNotFoundError:
             print(f"File with id {id_hash} not found in {foldername}/pkl/.")
             return False
-                
 
     def _load_txt() -> bool:
         try:
