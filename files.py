@@ -115,9 +115,9 @@ def Loader(maze, foldername: str, filename: str, fileext: str="", id_hash: str="
                 maze.end_pos = loaded_maze.end_pos
                 maze.ziel_marker = loaded_maze.ziel_marker
                 maze.ball_marker = loaded_maze.ball_marker
-                maze.paths = loaded_maze.paths
-                maze.visited = loaded_maze.visited
-                maze.solved = loaded_maze.solved
+                # maze.paths = loaded_maze.paths
+                # maze.visited = loaded_maze.visited
+                # maze.solved = loaded_maze.solved
             return True
         except FileNotFoundError:
             print(f"File {filename}.pkl not found in {foldername}/pkl/.")
