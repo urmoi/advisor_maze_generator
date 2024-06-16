@@ -6,7 +6,7 @@ from direction import DIR
 
 
 class SVG:
-    def __init__(self, maze, filename: str, to_pdf: bool=True, paths: bool=True, zones: bool=True, markers: bool=True, helpers: bool=False, changes: bool=False, overview: bool=True) -> None:
+    def __init__(self, maze, foldername: str, filename: str, to_pdf: bool=True, paths: bool=True, zones: bool=True, markers: bool=True, helpers: bool=False, changes: bool=False, overview: bool=True) -> None:
         self.paths: bool = paths
         self.zones: bool = zones
         self.markers: bool = markers
@@ -18,25 +18,25 @@ class SVG:
         svg_name: str = f'{file_name}.svg'
         pdf_name: str = f'{file_name}.pdf'
 
-        if not os.path.exists('graphics/svg/'):
-            os.makedirs('graphics/svg/')
+        if not os.path.exists(foldername+'/svg/'):
+            os.makedirs(foldername+'/svg/')
 
         try:
-            with open('graphics/svg/'+svg_name, 'w') as f:
+            with open(foldername+'/svg/'+svg_name, 'w') as f:
                 f.write(self.svg(maze))
         except FileNotFoundError:
-            return print(f"File {svg_name} can't be saved.")
+            return print(f"File {svg_name} can't be saved {foldername}/svg/.")
         
         if to_pdf:
-            if not os.path.exists('graphics/pdf/'):
-                os.makedirs('graphics/pdf/')
+            if not os.path.exists(foldername+'/pdf/'):
+                os.makedirs(foldername+'/pdf/')
             try:
                 from cairosvg import svg2pdf
-                svg2pdf(url='graphics/svg/'+svg_name, write_to='graphics/pdf/'+pdf_name)
+                svg2pdf(url=foldername+'/svg/'+svg_name, write_to=foldername+'/pdf/'+pdf_name)
             except ImportError:
                 return print("cairosvg is not installed. Please run 'pip install cairosvg' to install it.")
             except FileNotFoundError:
-                return print(f"File {pdf_name} can't be saved.")
+                return print(f"File {pdf_name} can't be saved to {foldername}/pdf/.")
     
 
     def svg(self, maze) -> str:
