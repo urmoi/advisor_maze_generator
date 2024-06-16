@@ -265,8 +265,6 @@ def simulate(
 
         maze.solve(algorithms=algorithms)
 
-        maze.save()
-
         mazes.append((maze, maze.analyze(algorithm=algorithms[0])))
 
     # sort mazes by the algorithm's analysis path length
@@ -285,10 +283,11 @@ def simulate(
         __ += f" {maze.hash:>10} |"
         __ += f" {analysis['length']:6} | {analysis['turns']:5} | {analysis['branches']:6}\n"
         if graphics:
+            maze.save()
             SVG(maze, filename=f'maze', paths=False, overview=False)
             SVG(maze, filename=f'maze_solution', paths=True, overview=True)
-            if i+1 == cutoff:
-                break
+        if i+1 == cutoff:
+            break
     print(__)
 
 
@@ -357,7 +356,7 @@ def load(
     
     maze: Maze = Maze(size=(0, 0))
     maze.load(id_hash=id_hash)
-
+    
     maze.solve(algorithms=algorithms)
 
     maze.visualize(paths=True, visited=False, guide=False)

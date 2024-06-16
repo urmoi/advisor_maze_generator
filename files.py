@@ -115,6 +115,11 @@ def Loader(maze, foldername: str, filename: str, fileext: str="", id_hash: str="
                 maze.end_pos = loaded_maze.end_pos
                 maze.ziel_marker = loaded_maze.ziel_marker
                 maze.ball_marker = loaded_maze.ball_marker
+                for y in range(maze.height):
+                    for x in range(maze.width):
+                        cell = maze.cell((y, x))
+                        cell._visited = set()
+                        cell._paths = set()
                 # maze.paths = loaded_maze.paths
                 # maze.visited = loaded_maze.visited
                 # maze.solved = loaded_maze.solved
