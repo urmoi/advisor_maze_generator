@@ -8,6 +8,7 @@ from svg import SVG
 # main.py
 #       -m --mode <mode>
 #       -i --id <id>
+#       -u --upwa <updatewalls>
 #       -s --size <size>
 #       -r --runs <runs|batchsize>
 #       -a --algo <algorithms>
@@ -29,6 +30,7 @@ def main():
     remove_walls: int = 15
     contest_mode: bool = False
     graphics: bool = True
+    modifications: list[str] = []
 
     flag: str = ''
 
@@ -41,7 +43,7 @@ def main():
                 flag = arg[2]
             else:
                 flag = arg[1]
-            if flag in ('m', 's', 'r', 'a', 'v', 'w', 'c', 'g', 'i'):
+            if flag in ('m', 'u', 's', 'r', 'a', 'v', 'w', 'c', 'g', 'i'):
                 continue
             else:
                 error()
@@ -52,7 +54,7 @@ def main():
                 continue
             else:
                 error()
-        if flag == 'i':
+        elif flag == 'i':
             id_hash = arg
         elif flag == 's':
             try:
@@ -123,6 +125,9 @@ def main():
                 graphics = False
             else:
                 error()
+        elif flag == 'u':
+            modifications.append(arg)
+            
 
     if size[0] < 0:
         size = (-1*size[0], -1*size[1])
@@ -158,6 +163,7 @@ def main():
         load(
             id_hash=id_hash,
             algorithms=algorithms,
+            modifications=modifications,
             graphics=graphics
         )
     else:
@@ -179,7 +185,8 @@ def error():
     print(f"                    sim   (simulation of multiple mazes)")
     print(f"                    bat   (batch of mazes from one maze)")
     print(f"                    load  (load maze from file with id)")
-    print(f"         -i --id    #####")
+    print(f"         -i --id    ####  (when loading or modifying a maze)")
+    print(f"         -u --upwa  y.x.[u(p)|r(ight)|d(own)|l(eft)].[r(emove)|i(nsert)]")
     print(f"         -s --size  8-128 (8-128)            >> default: 16 16")
     print(f"         -r --runs  0-#   (0-# = cutoff)     >> default: 10")
     print(f"         -a --algo  x     (all)              >> default: b (BFS)")
@@ -202,11 +209,11 @@ def error():
 
 
 def test(
-    size: tuple[int, int] = (16, 16),
-    contest_mode: bool = False,
-    verbose: int = 0,
-    algorithms: list[Algorithm] = [],
-    graphics: bool = True
+    size: tuple[int, int],
+    contest_mode: bool,
+    verbose: int,
+    algorithms: list[Algorithm],
+    graphics: bool
 ):
 
     maze: Maze = Maze(
@@ -238,13 +245,13 @@ def test(
 
 def simulate(
     runs: int,
-    cutoff: int=0,
-    size: tuple[int, int]=(16, 16),
-    remove_walls: int=15,
-    contest_mode: bool=True,
-    verbose: int=0,
-    algorithms: list[Algorithm]=[],
-    graphics: bool=True
+    cutoff: int,
+    size: tuple[int, int],
+    remove_walls: int,
+    contest_mode: bool,
+    verbose: int,
+    algorithms: list[Algorithm],
+    graphics: bool
 ):
     import time
 
@@ -295,13 +302,13 @@ def simulate(
 
 
 def testbatch(
-    batch_size: int = 6,
-    size: tuple[int, int] = (16, 16),
-    remove_walls: int=15,
-    contest_mode: bool = False,
-    verbose: int = 0,
-    algorithms: list[Algorithm] = [],
-    graphics: bool = True
+    batch_size: int,
+    size: tuple[int, int],
+    remove_walls: int,
+    contest_mode: bool,
+    verbose: int,
+    algorithms: list[Algorithm],
+    graphics: bool
 ):
     from maker import MakerSteps
 
@@ -351,9 +358,10 @@ def testbatch(
             SVG(maze_, foldername=foldername, filename=f'maze_{i+1:02d}_solution', paths=True, overview=True)
 
 def load(
-    id_hash: str = '',
-    algorithms: list[Algorithm] = [],
-    graphics: bool = True
+    id_hash: str,
+    algorithms: list[Algorithm],
+    modifications: list[str],
+    graphics: bool
 ):
     if not id_hash:
         error()
@@ -362,6 +370,38 @@ def load(
 
     if not maze.load(id_hash=id_hash):
         sys.exit(1)
+    
+    if modifications:
+        from direction import DIR, Dir
+
+        for modification in modifications:
+            y_, x_, d_, c = modification.split('.')
+            try:
+                y = int(y_)
+                x = int(x_)
+            except ValueError:
+                error()
+            if y < 0 or y >= maze.height or x < 0 or x >= maze.width:
+                error()
+            d: Dir = DIR._EMPTY
+            if d_ == 'u':
+                d = DIR.UP
+            elif d_ == 'r':
+                d = DIR.RIGHT
+            elif d_ == 'd':
+                d = DIR.DOWN
+            elif d_ == 'l':
+                d = DIR.LEFT
+            else:
+                error()
+            if c == 'i':
+                maze.make.insert_wall(maze.cell((y, x)), d)
+            elif c == 'r':
+                maze.make.remove_wall(maze.cell((y, x)), d)
+            else:
+                error()
+
+        maze.hash = maze.__hash__()
 
     maze.solve(algorithms=algorithms)
 
@@ -374,9 +414,6 @@ def load(
         SVG(maze, foldername=foldername, filename=f'__maze', paths=False, overview=False)
         SVG(maze, foldername=foldername, filename=f'__maze_build', paths=False, overview=False, helpers=True, changes=True)
         SVG(maze, foldername=foldername, filename=f'__maze_solution', paths=True, overview=True)
-
-    
-        
 
 if __name__ == '__main__':
     main()
