@@ -97,40 +97,51 @@ class SVG:
             for ey, row in enumerate(maze.maze):
                 for ex, cell in enumerate(row):
                     y, x = ey*cell_size+frame_size, ex*cell_size+frame_size
-                    # __ += holes(x, y)
-                    if cell.walls & DIR.UP.wall:
-                        __ += pole(x, y, DIR.LEFT) + wall(x, y, DIR.UP) + pole(x+cell_size, y, DIR.RIGHT)
-                    if cell.walls & DIR.RIGHT.wall:
-                        __ += pole(x+cell_size, y, DIR.UP) + wall(x, y, DIR.RIGHT) + pole(x+cell_size, y+cell_size, DIR.DOWN)
-                    if cell.walls & DIR.DOWN.wall:
-                        __ += pole(x, y+cell_size, DIR.LEFT) + wall(x, y, DIR.DOWN) + pole(x+cell_size, y+cell_size, DIR.RIGHT)
-                    if cell.walls & DIR.LEFT.wall:
-                        __ += pole(x, y, DIR.UP) + wall(x, y, DIR.LEFT) + pole(x, y+cell_size, DIR.DOWN)
+                    wall_as_lines: bool = True
+                    if wall_as_lines:
+                        __ += holes(x, y)
+                        if cell.walls & DIR.UP.wall:
+                            __ += pole(x, y, DIR.LEFT) + wall_line(x, y, DIR.UP) + pole(x+cell_size, y, DIR.RIGHT)
+                        if cell.walls & DIR.RIGHT.wall:
+                            __ += pole(x+cell_size, y, DIR.UP) + wall_line(x, y, DIR.RIGHT) + pole(x+cell_size, y+cell_size, DIR.DOWN)
+                        if cell.walls & DIR.DOWN.wall:
+                            __ += pole(x, y+cell_size, DIR.LEFT) + wall_line(x, y, DIR.DOWN) + pole(x+cell_size, y+cell_size, DIR.RIGHT)
+                        if cell.walls & DIR.LEFT.wall:
+                            __ += pole(x, y, DIR.UP) + wall_line(x, y, DIR.LEFT) + pole(x, y+cell_size, DIR.DOWN)
+                    else:
+                        if cell.walls & DIR.UP.wall:
+                            __ += wall_rect(x, y, DIR.UP)
+                        if cell.walls & DIR.RIGHT.wall:
+                            __ += wall_rect(x, y, DIR.RIGHT)
+                        if cell.walls & DIR.DOWN.wall:
+                            __ += wall_rect(x, y, DIR.DOWN)
+                        if cell.walls & DIR.LEFT.wall:
+                            __ += wall_rect(x, y, DIR.LEFT)
 
                     if self.changes:
                         if cell.walls & 0xF0 != 0xF0:
                             # changes out
                             changes_mode: str = "out"
                             if cell.walls >> 4 & DIR.UP.wall and not cell.walls & DIR.UP.wall:
-                                __ += wall(x, y, DIR.UP, changes=changes_mode)
+                                __ += wall_line(x, y, DIR.UP, changes=changes_mode)
                             if cell.walls >> 4 & DIR.RIGHT.wall and not cell.walls & DIR.RIGHT.wall:
-                                __ += wall(x, y, DIR.RIGHT, changes=changes_mode)
+                                __ += wall_line(x, y, DIR.RIGHT, changes=changes_mode)
                             if cell.walls >> 4 & DIR.DOWN.wall and not cell.walls & DIR.DOWN.wall:
-                                __ += wall(x, y, DIR.DOWN, changes=changes_mode)
+                                __ += wall_line(x, y, DIR.DOWN, changes=changes_mode)
                             if cell.walls >> 4 & DIR.LEFT.wall and not cell.walls & DIR.LEFT.wall:
-                                __ += wall(x, y, DIR.LEFT, changes=changes_mode)
+                                __ += wall_line(x, y, DIR.LEFT, changes=changes_mode)
 
                             # changes in
                             changes_mode: str = "in"
 
                             if not cell.walls >> 4 & DIR.UP.wall and cell.walls & DIR.UP.wall:
-                                __ += pole(x, y, DIR.LEFT) + wall(x, y, DIR.UP, changes=changes_mode) + pole(x+cell_size, y, DIR.RIGHT)
+                                __ += pole(x, y, DIR.LEFT) + wall_line(x, y, DIR.UP, changes=changes_mode) + pole(x+cell_size, y, DIR.RIGHT)
                             if not cell.walls >> 4 & DIR.RIGHT.wall and cell.walls & DIR.RIGHT.wall:
-                                __ += pole(x+cell_size, y, DIR.UP) + wall(x, y, DIR.RIGHT, changes=changes_mode) + pole(x+cell_size, y+cell_size, DIR.DOWN)
+                                __ += pole(x+cell_size, y, DIR.UP) + wall_line(x, y, DIR.RIGHT, changes=changes_mode) + pole(x+cell_size, y+cell_size, DIR.DOWN)
                             if not cell.walls >> 4 & DIR.DOWN.wall and cell.walls & DIR.DOWN.wall:
-                                __ += pole(x, y+cell_size, DIR.LEFT) + wall(x, y, DIR.DOWN, changes=changes_mode) + pole(x+cell_size, y+cell_size, DIR.RIGHT)
+                                __ += pole(x, y+cell_size, DIR.LEFT) + wall_line(x, y, DIR.DOWN, changes=changes_mode) + pole(x+cell_size, y+cell_size, DIR.RIGHT)
                             if not cell.walls >> 4 & DIR.LEFT.wall and cell.walls & DIR.LEFT.wall:
-                                __ += pole(x, y, DIR.UP) + wall(x, y, DIR.LEFT, changes=changes_mode) + pole(x, y+cell_size, DIR.DOWN)
+                                __ += pole(x, y, DIR.UP) + wall_line(x, y, DIR.LEFT, changes=changes_mode) + pole(x, y+cell_size, DIR.DOWN)
             return __
         
         def holes(x: int, y: int) -> str:
@@ -183,9 +194,26 @@ class SVG:
             __ += f'<rect x="{x}" y="{y}" width="{width}" height="{height}" fill="{pole_color}" />\n'
             return __
         
-        def wall(x, y, direction, changes=None) -> str:
+        def wall_rect(x, y, direction, changes=None) -> str:
+            x, y = x-pole_size/2, y-pole_size/2
+            wall_length: int = cell_size + pole_size
+            wall_thickness: int = pole_size
+            if direction == DIR.UP:
+                x, y, h, w = x, y, wall_thickness, wall_length
+            elif direction == DIR.RIGHT:
+                x, y, h, w = x+cell_size, y, wall_length, wall_thickness
+            elif direction == DIR.DOWN:
+                x, y, h, w = x, y+cell_size, wall_thickness, wall_length
+            elif direction == DIR.LEFT:
+                x, y, h, w = x, y, wall_length, wall_thickness
+            else:
+                return ""
+            color = wall_color if not changes else (wall_out_color if changes == "out" else wall_in_color)
+            return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{color}" />\n'
+        
+        def wall_line(x, y, direction, changes=None) -> str:
             x_pole, y_pole = x+pole_size/2, y+pole_size/2
-            wall_length: int = cell_size-pole_size
+            wall_length: int = cell_size
             if direction == DIR.UP:
                 x1, y1, x2, y2 = x_pole, y, x_pole+wall_length, y
             elif direction == DIR.RIGHT:
