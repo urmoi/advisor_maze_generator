@@ -402,6 +402,7 @@ def load(
                 error()
 
         maze.hash = maze.__hash__()
+        maze.save(foldername=f'mazes_{maze.hash}')
 
     maze.solve(algorithms=algorithms)
 
